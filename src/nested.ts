@@ -287,5 +287,15 @@ export function duplicateQuestionInArray(
     targetId: number,
     newId: number,
 ): Question[] {
-    return [];
+    return questions.map(
+        (var1: Question): Question =>
+            targetId === var1.id ?
+                {
+                    ...var1,
+                    id: newId,
+                }
+            :   {
+                    ...var1,
+                },
+    );
 }
