@@ -1,6 +1,6 @@
 import { Answer } from "./interfaces/answer";
 import { Question, QuestionType } from "./interfaces/question";
-import { makeBlankQuestion } from "./objects";
+import { duplicateQuestion, makeBlankQuestion } from "./objects";
 
 /**
  * Consumes an array of questions and returns a new array with only the questions
@@ -238,42 +238,38 @@ export function changeQuestionTypeById(
  * Remember, if a function starts getting too complicated, think about how a helper function
  * can make it simpler! Break down complicated tasks into little pieces.
  */
+export function helpEdit(
+    options: string[],
+    targetOption: number,
+    newOption: string,
+): string[] {
+    //
+    if (targetOption === -1) {
+        return [...options, newOption];
+    } else {
+        const unpacked = [...options];
+        unpacked.splice(targetOption, 1, newOption);
+        return unpacked;
+    }
+}
+
 export function editOption(
     questions: Question[],
     targetId: number,
     targetOptionIndex: number,
     newOption: string,
 ): Question[] {
-    let ret = questions.reduce(
-        (opt: string[], var2: Question) =>
-            targetId === var2.id ? [...var2.options] : opt,
-        [],
+    const newArray = questions.map(
+        (question: Question): Question => ({
+            ...question,
+            options:
+                question.id === targetId ?
+                    helpEdit(question.options, targetOptionIndex, newOption)
+                :   question.options,
+        }),
     );
-    if (targetOptionIndex === -1) {
-        return questions.map(
-            (var1: Question): Question =>
-                targetId === var1.id ?
-                    {
-                        ...var1,
-                        options: ret.splice(var1.options.length, 0, newOption),
-                    }
-                :   {
-                        ...var1,
-                    },
-        );
-    } else {
-        return questions.map(
-            (var1: Question): Question =>
-                targetId === var1.id ?
-                    {
-                        ...var1,
-                        options: ret.splice(targetOptionIndex, 1, newOption),
-                    }
-                :   {
-                        ...var1,
-                    },
-        );
-    }
+
+    return newArray;
 }
 
 /***
@@ -287,15 +283,19 @@ export function duplicateQuestionInArray(
     targetId: number,
     newId: number,
 ): Question[] {
-    return questions.map(
-        (var1: Question): Question =>
-            targetId === var1.id ?
-                {
-                    ...var1,
-                    id: newId,
-                }
-            :   {
-                    ...var1,
-                },
+    const findQuestion = questions.find(
+        (question: Question): boolean => question.id === targetId,
     );
+
+    if (findQuestion !== undefined) {
+        const doubled = [...questions];
+        doubled.splice(
+            questions.indexOf(findQuestion) + 1,
+            0,
+            duplicateQuestion(newId, findQuestion),
+        );
+        return doubled;
+    } else {
+        return questions;
+    }
 }
